@@ -10,6 +10,7 @@ jobs:
     name: "Build application"
     runs-on: "ubuntu-latest"
     steps:
+      # Step to print a simple message
       # Checkout code
       - uses: actions/checkout@v4
 
@@ -21,3 +22,9 @@ jobs:
 
       # Shell script to print the version
       - run: go version
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test
+        run: go test ./...
