@@ -2,17 +2,16 @@
 
 ## Requirements
 
-* A GitHub account, with a functioning SSH-key or password setup
-* Available GitHub action minutes and storage space (included in free tier)
+- A GitHub account, with a functioning SSH-key or password setup
+- Available GitHub action minutes and storage space (included in free tier)
 
 The tasks in the workshop can be done using only the built-in GitHub editor. However, in order to learn about supporting tooling, and simplify some tasks, the workshop will assume you've installed the following tools:
 
-* Your preferred terminal emulator/shell and `git`
-* The [GitHub CLI](https://github.com/cli/cli#installation)
-* [actionlint](https://github.com/rhysd/actionlint/blob/main/docs/install.md)
-* [ShellCheck](https://github.com/koalaman/shellcheck?tab=readme-ov-file#installing) (will be used by actionlint)
-* Editor with YAML and GitHub actions plugins (e.g., VS Code with the [YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) and [GitHub Actions](https://marketplace.visualstudio.com/items?itemName=github.vscode-github-actions) extensions)
-
+- Your preferred terminal emulator/shell and `git`
+- The [GitHub CLI](https://github.com/cli/cli#installation)
+- [actionlint](https://github.com/rhysd/actionlint/blob/main/docs/install.md)
+- [ShellCheck](https://github.com/koalaman/shellcheck?tab=readme-ov-file#installing) (will be used by actionlint)
+- Editor with YAML and GitHub actions plugins (e.g., VS Code with the [YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) and [GitHub Actions](https://marketplace.visualstudio.com/items?itemName=github.vscode-github-actions) extensions)
 
 ## Getting started
 
@@ -27,69 +26,67 @@ This repository contains a simple go app. You do not need to know go, nor use an
 
 1. We'll start with a simple workflow. Create the file `.github/workflows/test.yml` with the following content:
 
-    ```yml
-    # The "display name", shown in the GitHub UI
-    name: Build and test
+   ```yml
+   # The "display name", shown in the GitHub UI
+   name: Build and test
 
-    # Trigger, run on push on any branch
-    on:
-      push:
+   # Trigger, run on push on any branch
+   on:
+     push:
 
-    jobs:
-      test: # The 'build' job
-        name: "Build application"
-        runs-on: 'ubuntu-latest'
-        steps:
-          # Step to print a simple message
-          - run: echo "Hello world"
-    ```
+   jobs:
+     test: # The 'build' job
+       name: "Build application"
+       runs-on: "ubuntu-latest"
+       steps:
+         # Step to print a simple message
+         - run: echo "Hello world"
+   ```
 
-    `.github/workflows/` is a special directory where all workflows should be placed.
+   `.github/workflows/` is a special directory where all workflows should be placed.
 
 2. (Optional) Before committing and pushing, run `actionlint` from the repository root. It should run with a zero (successful) exit code and no output, since the workflow file is without errors. Try again with `actionlint --verbose` and verify the output to confirm that it found your file. By default, `actionlint` scans all files in `.github/workflows/`
 
 3. Commit and push the workflow to your fork. In the GitHub UI, navigate to the "Actions" tab, and verify that it runs successfully.
 
-> [!NOTE]
-> *How does this work?*
+> [!NOTE] > _How does this work?_
 >
 > Let's break down the workflow file.
 >
-> * `name:` is only used for display in the GitHub UI
-> * `on:` specifies triggers - what causes this workflow to be run
-> * `jobs:` specifies each _job_ in the workflow. A job runs on a single virtual machine with a given OS (here: `ubuntu-latest`), and the `steps` share the environment (filesystem, installed tools, environment variables, etc.). Different jobs have separate environments.
-> * `steps:` run sequentially, and might run shell scripts or an action (a reusable, pre-made piece of code). Each step can run conditionally. If a step fails, all later steps fail by default. Creating steps to do e.g. cleanup in error situations [is possible](https://docs.github.com/en/actions/learn-github-actions/expressions#status-check-functions).
-
+> - `name:` is only used for display in the GitHub UI
+> - `on:` specifies triggers - what causes this workflow to be run
+> - `jobs:` specifies each _job_ in the workflow. A job runs on a single virtual machine with a given OS (here: `ubuntu-latest`), and the `steps` share the environment (filesystem, installed tools, environment variables, etc.). Different jobs have separate environments.
+> - `steps:` run sequentially, and might run shell scripts or an action (a reusable, pre-made piece of code). Each step can run conditionally. If a step fails, all later steps fail by default. Creating steps to do e.g. cleanup in error situations [is possible](https://docs.github.com/en/actions/learn-github-actions/expressions#status-check-functions).
 
 ## Build and test the application
 
 1. Let's use some pre-made actions to checkout our code, and install Golang tooling. Replace the "hello world" step with the following steps:
 
-    ```yml
-          # Checkout code
-          - uses: actions/checkout@v4
+   ```yml
+   # Checkout code
+   - uses: actions/checkout@v4
 
-          # Install go 1.21
-          - name: Setup go
-            uses: actions/setup-go@v4
-            with: # Specify input variables to the action
-              go-version: '1.21.x'
+   # Install go 1.21
+   - name: Setup go
+     uses: actions/setup-go@v4
+     with: # Specify input variables to the action
+       go-version: "1.21.x"
 
-          # Shell script to print the version
-          - run: go version
-    ```
+   # Shell script to print the version
+   - run: go version
+   ```
 
 2. Again, run `actionlint` before you commit and push. Verify that the correct version is printed.
 
 3. Continue by adding steps to build and test the application:
 
-    ```yml
-      - name: Build
-        run: go build -v ./...
+   ```yml
+   - name: Build
+     run: go build -v ./...
 
-      - name: Test
-        run: go test ./...
-    ```
+   - name: Test
+     run: go test ./...
+   ```
 
 4. Verify that the workflow fails if the build fails (create a syntax error in any file). Separately, verify that the workflow fail when the tests are incorrect (modify a test case in `internal/greeting/greet_test.go`).
 
@@ -97,35 +94,34 @@ This repository contains a simple go app. You do not need to know go, nor use an
 
 1. A `Dockerfile` defining the application image exists in the root directory. To do a container-based deploy we'll use the actions provided by Docker to build the image. Create `.github/workflows/build.yml` with the following content:
 
-    ```yml
-    on:
-      push
+   ```yml
+   on: push
 
-    jobs:
-      build:
-        runs-on: 'ubuntu-latest'
-        steps:
-        - uses: actions/checkout@v4
-        - name: Set up Docker Buildx
-          uses: docker/setup-buildx-action@v3
+   jobs:
+     build:
+       runs-on: "ubuntu-latest"
+       steps:
+         - uses: actions/checkout@v4
+         - name: Set up Docker Buildx
+           uses: docker/setup-buildx-action@v3
 
-        - name: Use lowercase repository name as docker image name
-          run:
-            export REPOSITORY=${{ github.repository }}
-            echo "DOCKER_IMAGE_NAME=${REPOSITORY@L}" >> "$GITHUB_ENV"
+         #- name: Use lowercase repository name as docker image name
+         #  run:
+         #    export REPOSITORY=${{ github.repository }}
+         #    echo "DOCKER_IMAGE_NAME=${REPOSITORY@L}" >> "$GITHUB_ENV"
 
-        - name: Build and push Docker image
-          uses: docker/build-push-action@v5
-          with:
-            push: false
-            tags: ghcr.io/${{ env.DOCKER_IMAGE_NAME }}:latest
-    ```
+         - name: Build and push Docker image
+           uses: docker/build-push-action@v5
+           with:
+             push: false
+             tags: ghcr.io/ostenedvardsen/github-actions-workshop:latest
+   ```
 
 > [!NOTE]
 >
 > The `${{ <expression> }}` syntax is used to access variables, call functions and more. You can read more in [the documentation](https://docs.github.com/en/actions/learn-github-actions/expressions).
 >
-> In this case, `${{ github.repository }}` is a variable from the [`github` context](https://docs.github.com/en/actions/learn-github-actions/contexts#github-context) and will be `<user-or-org>/<repo-name>`. `github.repository` may contain uppercase letters, but the a Docker image must be all lower case, so we transform the repository using a [shell parameter expansion](https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html) in a separate step. The lower-cased repository name is set as an *environment variable*.
+> In this case, `${{ github.repository }}` is a variable from the [`github` context](https://docs.github.com/en/actions/learn-github-actions/contexts#github-context) and will be `<user-or-org>/<repo-name>`. `github.repository` may contain uppercase letters, but the a Docker image must be all lower case, so we transform the repository using a [shell parameter expansion](https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html) in a separate step. The lower-cased repository name is set as an _environment variable_.
 >
 > GitHub has a list of [default environment variables](https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables). In this case, we're defining our own environment variable by [writing to the special `$GITHUB_ENV` file](https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-environment-variable). When setting environment variables this way, it will be available in subsequent steps.
 >
@@ -135,24 +131,24 @@ This repository contains a simple go app. You do not need to know go, nor use an
 
 3. In order to push the image, we will need to set up [permissions](https://docs.github.com/en/actions/using-jobs/assigning-permissions-to-jobs). With `packages: write` you allow the action to push images to the GitHub Container Registry (GHCR). You can set it at the top-level, for all jobs in the workflow, or for a single job:
 
-    ```yml
-    jobs:
-      build:
-        permissions:
-          packages: write
-        # ... runs-on, steps, etc
-    ```
+   ```yml
+   jobs:
+     build:
+       permissions:
+         packages: write
+       # ... runs-on, steps, etc
+   ```
 
 4. We'll have to add a step the `docker/login-action@v3` action to login to GHCR, before we push it. Add the following step before the build and push step:
 
-    ```yml
-          - name: Login to GitHub Container Registry
-            uses: docker/login-action@v3
-            with:
-              registry: ghcr.io
-              username: ${{ github.actor }}
-              password: ${{ github.token }}
-    ```
+   ```yml
+   - name: Login to GitHub Container Registry
+     uses: docker/login-action@v3
+     with:
+       registry: ghcr.io
+       username: ${{ github.actor }}
+       password: ${{ github.token }}
+   ```
 
 > [!NOTE]
 > The `github.token` (often referred to as `GITHUB_TOKEN`) is a special token used to authenticate the workflow job. Read more about it here in [the documentation](https://docs.github.com/en/actions/security-guides/automatic-token-authentication).
@@ -167,13 +163,13 @@ Jobs in the same workflow file can be run in parallel if they're not dependent o
 
 1. We also want to lint the app code. In order to get faster feedback, we can create a separate lint-job in our `test.yml` workflow file. Create a new job in `test.yml` for linting called `lint`, which contains the following step:
 
-    ```yml
-          # Also add checkout and setup go steps here, like in previous tasks
-          - name: Verify formatting
-            run: |
-              no_unformatted_files="$(gofmt -l $(git ls-files '*.go') | wc -l)"
-              exit "$no_unformatted_files"
-    ```
+   ```yml
+   # Also add checkout and setup go steps here, like in previous tasks
+   - name: Verify formatting
+     run: |
+       no_unformatted_files="$(gofmt -l $(git ls-files '*.go') | wc -l)"
+       exit "$no_unformatted_files"
+   ```
 
 2. Push the code and verify that the workflow runs two jobs successfully.
 
@@ -181,10 +177,10 @@ Jobs in the same workflow file can be run in parallel if they're not dependent o
 
 Workflows can be triggered in many different ways and can be grouped into four type of events:
 
-* Repository related events
-* External events
-* Scheduled triggering
-* Manual triggering
+- Repository related events
+- External events
+- Scheduled triggering
+- Manual triggering
 
 Repository related events are the most common and are triggered when something happens in the repository. External events and scheduled triggers are not covered in this workshop, but it is nice to know that it is possible. Some example triggers:
 
@@ -245,7 +241,7 @@ jobs:
 2. Create a reusable workflow for the the code in `build.yml` and use a input-parameter to determine if the image should be pushed or not.
 
 > [!NOTE]
-> A limitation of reusable workflows is that you have to run it as a single job, without the possibility to run additional steps before or after in the same environment. If you want to create reusable code that runs in the same environment, you can create a *custom action* which we will look at later in the workshop.
+> A limitation of reusable workflows is that you have to run it as a single job, without the possibility to run additional steps before or after in the same environment. If you want to create reusable code that runs in the same environment, you can create a _custom action_ which we will look at later in the workshop.
 
 ## Deploying to environment
 
@@ -276,9 +272,9 @@ Jobs can depend on each other. We'll now create a workflow that builds, then dep
 
 2. Modify your reusable build action to propagate outputs. You'll need to add an `id: build-push` to the step that builds the image. Then, you can add an `outputs` object property to the job and the workflow.
 
-    To get the correct outputs from the `docker/build-push-action` action, you should use `fromJson(jobs.build.outputs.metadata)['image.name']` and `jobs.build.outputsdigest` outputs from the build-push action as `imageName` and `digest` respectively. You can read more about the `fromJson` expression in [the documentation](https://docs.github.com/en/actions/learn-github-actions/expressions#fromjson).
+   To get the correct outputs from the `docker/build-push-action` action, you should use `fromJson(jobs.build.outputs.metadata)['image.name']` and `jobs.build.outputsdigest` outputs from the build-push action as `imageName` and `digest` respectively. You can read more about the `fromJson` expression in [the documentation](https://docs.github.com/en/actions/learn-github-actions/expressions#fromjson).
 
-    Take a look at [the documentation](https://docs.github.com/en/actions/using-workflows/reusing-workflows#using-outputs-from-a-reusable-workflow) for a complete example of outputs for a reusable workflow.
+   Take a look at [the documentation](https://docs.github.com/en/actions/using-workflows/reusing-workflows#using-outputs-from-a-reusable-workflow) for a complete example of outputs for a reusable workflow.
 
 3. Expand your (non-reusable) build workflow with a couple of more jobs: `deploy-test` and `deploy-production`. These jobs should reuse the `deploy.yml` workflow, use `imageName` and `digest` outputs from the `build` job and use correct environments. You have to specify `needs` for the deploy jobs, take a look at [the `needs` context and corresponding example](https://docs.github.com/en/actions/learn-github-actions/contexts#needs-context).
 
@@ -286,7 +282,7 @@ Jobs can depend on each other. We'll now create a workflow that builds, then dep
 
 ## Branch protection rules
 
-Many teams want require code reviews, avoid accidental changes, run tests or ensure that the formatting is correct on all new code before merging. These restrictions can be done using [*branch protection rules*](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches).
+Many teams want require code reviews, avoid accidental changes, run tests or ensure that the formatting is correct on all new code before merging. These restrictions can be done using [_branch protection rules_](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches).
 
 You can find branch protections rules by going to [Settings > Branches](../../settings/branches) (requires repository administrator privileges). Let's create a branch protection rule for the `main` branch:
 
@@ -319,7 +315,6 @@ When creating an action in the same repository as your other workflows, it's cus
 
 The default behavior of GitHub Actions is to allow multiple jobs or workflows to run [concurrently](https://docs.github.com/en/actions/using-jobs/using-concurrency).
 
-
 If you have frequent deploys to an environment this can be a problem because you typically don't want to have multiple deploys to the same environment happening at the same time.
 
 The solution is to control the concurrency of a job or workflow by specifying a `concurrency group`:
@@ -333,7 +328,6 @@ concurrency:
 Github Actions ensures that jobs or workflows with the same key are not allowed run at the same time. If `cancel-in-progress` is false the workflow or jobs will run sequentially.
 
 1. Change the `deploy.yml` workflow to ensure that deploys to the same environment is done sequentially
-
 
 ### Manual approval before production deploy
 
@@ -357,4 +351,3 @@ GitHub Actions has [caching functionality](https://docs.github.com/en/actions/us
 ### Environment secrets
 
 TODO
-
