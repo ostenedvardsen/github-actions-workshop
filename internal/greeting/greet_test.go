@@ -60,7 +60,7 @@ func TestGreetNone(t *testing.T) {
 
 	got, err := Greet(names)
 	if err == nil {
-		t.Fatalf("Expected returned error, got nil")
+		t.Fatalf("Expected returfvghbjned error, got nil")
 	}
 	if got != "" {
 		t.Fatalf("Expected empty string as return value with the error, got '%s'", got)
