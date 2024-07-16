@@ -55,7 +55,7 @@ func TestGreetManyNames(t *testing.T) {
 	}
 }
 
-func TestGreetNone(t *testing.T) {
+func TestGreetNone(t *testing.T) 
 	names := []string{}
 
 	got, err := Greet(names)
